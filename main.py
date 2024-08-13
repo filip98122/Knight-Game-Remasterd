@@ -41,7 +41,7 @@ def colision1(rect1 : pygame.Rect,rect2):
     return False
 
 clock = pygame.time.Clock()
-WIDTH,HEIGHT = 765,765
+WIDTH,HEIGHT = 1200,765
 window = pygame.display.set_mode((WIDTH,HEIGHT))
 def button_colision(width,height,x,y,mousePos,mouseState):
     if mousePos[0] > x and mousePos[0] < x + width and mousePos[1] > y and mousePos[1] < y + height and mouseState[0] == True:
@@ -51,6 +51,32 @@ def button_colision(width,height,x,y,mousePos,mouseState):
 
 fd = 0
 
+class Knight:
+    def __init__(self,x,y,dx,dy):
+        self.x = x
+        self.y = y
+        self.dx = dx
+        self.dy = dy
+        self.scale = 1.6
+        self.sprite_img = pygame.image.load('idle.png')
+        self.width = self.sprite_img.get_width()*self.scale
+        self.height = self.sprite_img.get_height()*self.scale
+        self.scaled_img = pygame.transform.scale(self.sprite_img, (self.width, self.height))
+    def draw(self,window):
+        window.blit(self.scaled_img,(self.x,self.y))
+class Zombie:
+    def __init__(self,x,y,dx,dy):
+        self.x = x
+        self.y = y
+        self.dx = dx
+        self.dy = dy
+        self.scale = 1.6
+        self.sprite_img = pygame.image.load('idle.png')
+        self.width = self.sprite_img.get_width()*self.scale
+        self.height = self.sprite_img.get_height()*self.scale
+    def draw(self,window):
+        pass
+k1 = Knight(100,500,0,0)
 screen = 0
 while True:
     window.fill("Blue")
@@ -65,6 +91,8 @@ while True:
     if keys[pygame.K_ESCAPE]:
         #ens()
         exit()
+    
+    k1.draw(window)
     pygame.display.update()
     clock.tick(60)
     
