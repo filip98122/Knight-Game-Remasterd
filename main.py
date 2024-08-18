@@ -4,6 +4,7 @@ import random
 import math
 import time
 import json
+from playsound import playsound
 from cryptography.fernet import Fernet
 pygame.init()
 pygame.mixer.init()
@@ -40,6 +41,7 @@ def colision1(rect1 : pygame.Rect,rect2):
         return True
     return False
 
+sound0 = pygame.mixer.Sound('tata.wav')
 clock = pygame.time.Clock()
 WIDTH,HEIGHT = 1200,765
 window = pygame.display.set_mode((WIDTH,HEIGHT))
@@ -61,7 +63,6 @@ class pozadina:
     def draw(self):
         global window
         window.blit(self.scaled_img,(0,0))
-p1 = pozadina()
 class Knight:
     def __init__(self,x,y,dx,dy):
         self.x = x
@@ -81,6 +82,14 @@ class Knight:
         self.jump = 0
         self.cooldown = 0
         self.airattack = 0
+        self.hp = 5    
+    def end_(self):
+        exit()
+    def checker(self,kx,kwidth):
+        minus_g = 0
+        if self.x+self.width//2+self.width>= kx and self.x<kx and self.last_direction == 1 or self.x-self.width//2 <= kx+kwidth and self.x>kx and self.last_direction == -1:
+            minus_g += 1
+        return minus_g
     def draw(self,window):
         if self.last_direction == 1:
             self.sprite_img = pygame.image.load('idle.png')
@@ -148,11 +157,14 @@ class Knight:
         window.blit(self.scaled_img,(self.x,self.y))
         if self.immobilis<=120 and self.immobilis>= 90:
             self.y += 40        
-    def move(self):
+    def move(self,minus):
         global WIDTH
         global HEIGHT
         global mouseState
         global keys
+        self.hp -= minus
+        if self.hp <= 0:
+            self.end_()
         self.dx = 0
         self.dy = 0
         self.move_l = False
@@ -207,7 +219,6 @@ class Knight:
                 self.x+=self.dx
                 self.y+=self.dy
                 
-        
         if self.airattack > 0:
             self.airattack -= 1
         
@@ -232,80 +243,98 @@ class Goblin:
         sprite_img = pygame.image.load('run_g1.png')
         self.width = sprite_img.get_width()*self.scale
         self.height = sprite_img.get_height()*self.scale
+        self.hp = 1
     def draw(self,window):
-        sprite_img = 0
-        if self.state <= 180 and self.state > 135:
-            if self.last_direction == 1:
-                sprite_img = pygame.image.load('run_g1.png')
-            else:
-                sprite_img = pygame.image.load('run_g1l.png')
-        if self.state <= 135 and self.state > 90:
-            if self.last_direction == 1:
-                sprite_img = pygame.image.load('run_g2.png')
-            else:
-                sprite_img = pygame.image.load('run_g2l.png')
-        if self.state <= 90 and self.state > 45:
-            if self.last_direction == 1:
-                sprite_img = pygame.image.load('run_g3.png')
-            else:
-                sprite_img = pygame.image.load('run_g3l.png')
-        if self.state <= 45 and self.state > 0:
-            if self.last_direction == 1:
-                sprite_img = pygame.image.load('run_g4.png')
-            else:
-                sprite_img = pygame.image.load('run_g4l.png')
-                
-        if self.attack <= 205 and self.attack > 180:
-            if self.last_direction == 1:
-                sprite_img = pygame.image.load('attack_g1.png')
-            else:
-                sprite_img = pygame.image.load('attack_g1l.png')
-        if self.attack <= 180 and self.attack > 90:
-            if self.last_direction == 1:
-                sprite_img = pygame.image.load('attack_g2.png')
-            else:
-                sprite_img = pygame.image.load('attack_g2l.png')
-        if self.attack <= 90 and self.attack > 45:
-            if self.last_direction == 1:
-                sprite_img = pygame.image.load('attack_g3.png')
-            else:
-                sprite_img = pygame.image.load('attack_g3l.png')
-        if self.attack <= 45 and self.attack > 0:
-            if self.last_direction == 1:
-                sprite_img = pygame.image.load('attack_g4.png')
-            else:
-                sprite_img = pygame.image.load('attack_g4l.png')
-                
-                
-        self.width = sprite_img.get_width()*self.scale
-        self.height = sprite_img.get_height()*self.scale
-        scaled_img = pygame.transform.scale(sprite_img, (self.width, self.height))
-        window.blit(scaled_img,(self.x,self.y))
-    def move(self,kx,kwidth):
-        self.dx = 0
-        if self.attack==0:
-            if kx>self.x:
-                self.last_direction = 1
-                self.dx = 1.5
-            else:
-                self.last_direction = -1
-                self.dx = -1.5
-        if self.state >= 3:
-            self.state -= 3
-        if self.state == 0:
-            self.state = 180
-        if self.attack > 0:
-            self.attack-=1
-        if self.attack == 0:
-            if self.x+self.width>= kx and self.x<kx and self.last_direction == 1 or self.x <= kx+kwidth and self.x>kx and self.last_direction == -1:
-                self.attack = 205
-        self.x += self.dx
+        if self.hp == 1:
+            sprite_img = 0
+            if self.state <= 180 and self.state > 135:
+                if self.last_direction == 1:
+                    sprite_img = pygame.image.load('run_g1.png')
+                else:
+                    sprite_img = pygame.image.load('run_g1l.png')
+            if self.state <= 135 and self.state > 90:
+                if self.last_direction == 1:
+                    sprite_img = pygame.image.load('run_g2.png')
+                else:
+                    sprite_img = pygame.image.load('run_g2l.png')
+            if self.state <= 90 and self.state > 45:
+                if self.last_direction == 1:
+                    sprite_img = pygame.image.load('run_g3.png')
+                else:
+                    sprite_img = pygame.image.load('run_g3l.png')
+            if self.state <= 45 and self.state > 0:
+                if self.last_direction == 1:
+                    sprite_img = pygame.image.load('run_g4.png')
+                else:
+                    sprite_img = pygame.image.load('run_g4l.png')
+                    
+            if self.attack <= 205 and self.attack > 180:
+                if self.last_direction == 1:
+                    sprite_img = pygame.image.load('attack_g1.png')
+                else:
+                    sprite_img = pygame.image.load('attack_g1l.png')
+            if self.attack <= 180 and self.attack > 90:
+                if self.last_direction == 1:
+                    sprite_img = pygame.image.load('attack_g2.png')
+                else:
+                    sprite_img = pygame.image.load('attack_g2l.png')
+            if self.attack <= 90 and self.attack > 45:
+                if self.last_direction == 1:
+                    sprite_img = pygame.image.load('attack_g3.png')
+                else:
+                    sprite_img = pygame.image.load('attack_g3l.png')
+            if self.attack <= 45 and self.attack > 0:
+                if self.last_direction == 1:
+                    sprite_img = pygame.image.load('attack_g4.png')
+                else:
+                    sprite_img = pygame.image.load('attack_g4l.png')
+                    
+                    
+            self.width = sprite_img.get_width()*self.scale
+            self.height = sprite_img.get_height()*self.scale
+            scaled_img = pygame.transform.scale(sprite_img, (self.width, self.height))
+            window.blit(scaled_img,(self.x,self.y))
+    def move(self,kx,kwidth,minus_g):
+        self.hp-=minus_g
+        if self.hp == 1:
+            minus = 0
+            self.dx = 0
+            if self.attack==0:
+                if kx>self.x:
+                    self.last_direction = 1
+                    self.dx = 1.5
+                else:
+                    self.last_direction = -1
+                    self.dx = -1.5
+            if self.state >= 3:
+                self.state -= 3
+            if self.state == 0:
+                self.state = 180
+            if self.attack > 0:
+                self.attack-=1
+            if self.attack == 0:
+                if self.x+self.width>= kx and self.x<kx and self.last_direction == 1 or self.x <= kx+kwidth and self.x>kx and self.last_direction == -1:
+                    self.attack = 205
+            if self.attack == 75:
+                if self.x+self.width//2+self.width>= kx and self.x<kx and self.last_direction == 1 or self.x-self.width//2 <= kx+kwidth and self.x>kx and self.last_direction == -1:
+                    minus += 1
+            self.x += self.dx
+            return minus
+
+
 l_g = []
 g1 = Goblin(900,610,0,0,0)
 l_g.append(g1)
+p1 = pozadina()
 k1 = Knight(100,550,0,0)
 screen = 0
+minus_g = 0
 while True:
+    a = random.randint(1,50)
+    #if 
+
+    sound0.play()
+    hp_minus = 0
     window.fill("Blue")
     p1.draw()
     keys = pygame.key.get_pressed()
@@ -318,8 +347,12 @@ while True:
     if keys[pygame.K_ESCAPE]:
         exit()
     for i in range(len(l_g)):
-        l_g[i].move(k1.x,k1.width)
-    k1.move()
+        if k1.immobilis == 75 or k1.airattack==20:
+            minus_g = k1.checker(l_g[i].x,l_g[i].width)
+        hp_minus = l_g[i].move(k1.x,k1.width,minus_g)
+    if hp_minus != 1:
+        hp_minus =0
+    k1.move(hp_minus)
     for i in range(len(l_g)):
         l_g[i].draw(window)
     k1.draw(window)
