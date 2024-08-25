@@ -47,6 +47,12 @@ sound0 = pygame.mixer.Sound('tata.wav')
 clock = pygame.time.Clock()
 WIDTH,HEIGHT = 1200,765
 window = pygame.display.set_mode((WIDTH,HEIGHT))
+def highlight(width,height,x,y,mousePos):
+    if mousePos[0] > x and mousePos[0] < x + width and mousePos[1] > y and mousePos[1] < y + height:
+        return True
+    else:
+        return False
+
 def button_colision(width,height,x,y,mousePos,mouseState):
     if mousePos[0] > x and mousePos[0] < x + width and mousePos[1] > y and mousePos[1] < y + height and mouseState[0] == True:
         return True
@@ -98,11 +104,13 @@ class pozadina:
         self.scaled_img = pygame.transform.scale(x, (self.width, self.height))
     def draw(self):
         global window
-        #global screen
+        global screen
         #if screen == 50:
         #    self.img = pygame.image.load('death.png')
-
-        window.blit(self.scaled_img,(0,0))
+        if screen == 50:
+            window.blit(self.scaled_img,(-100,0))
+        else:
+            window.blit(self.scaled_img,(0,0))
 countdown = 0
 class Knight:
     def __init__(self,x,y,dx,dy,hp):
@@ -111,6 +119,7 @@ class Knight:
         self.dx = dx
         self.dy = dy
         self.scale = 1.6
+        self.coldow = 0
         self.sprite_img = pygame.image.load('idle.png')
         self.width = self.sprite_img.get_width()*self.scale
         self.height = self.sprite_img.get_height()*self.scale
@@ -202,6 +211,8 @@ class Knight:
         if self.immobilis<=120 and self.immobilis>= 90:
             self.y += 40        
     def move(self,minus):
+        if self.coldow>0:
+            self.coldow-=1
         global WIDTH
         global HEIGHT
         global mouseState
@@ -242,11 +253,12 @@ class Knight:
                         self.jump = 50
         
         if self.immobilis == 0:
-            if mouseState[0] == True:
-                if self.jump == 0:
-                    self.immobilis = 120
-                else:
-                    self.airattack = 30
+            if self.coldow == 0:
+                if mouseState[0] == True:
+                    if self.jump == 0:
+                        self.immobilis = 120
+                    else:
+                        self.airattack = 30
                     
                     
         if self.jump>=26:
@@ -366,17 +378,59 @@ class Goblin:
                     minus += 1
             self.x += self.dx
             return minus
+class Button:
+    def __init__(s,x,y,text,scren_c):
+        s.text = text
+        s.x = x
+        s.y = y
+        s.dx = 0
+        s.dy = 0
+        s.sx = scren_c
+        s.font = pygame.font.SysFont('The Black Knight',70)
+        s.text_surface = s.font.render(f"{s.text}", True, (255, 255, 255))
+        s.width,s.height = s.font.size(s.text)
+    def draw(s,window):
+        window.blit(s.text_surface,(s.x+s.dx,s.y+s.dy))
+        s.dx=0
+        s.dy=0
+    def checker(s,mousePos,mouseState,scr):
+        if highlight(s.width,s.height,s.x,s.y,mousePos):
+            s.font = pygame.font.SysFont('The Black Knight',90)
+            s.text_surface = s.font.render(f"{s.text}", True, (255, 255, 255))
+            s.dx = -30
+            s.dy = 0
+            if mouseState[0] == True:
+                scr = s.sx
+                if s.sx == 0:
+                    p1.update(pygame.image.load('haunt.png'),0.851)
+                    k1.coldow = 10
+                    
+        else:
+            s.font = pygame.font.SysFont('The Black Knight',70)
+            s.text_surface = s.font.render(f"{s.text}", True, (255, 255, 255))
+        return scr
+    
+l_b = [Button(425,250,"---Start Over---",0),Button(425,400,"----Continue----",0)]
 
-
+def wrant(window,x,y):
+    scale = 0.2
+    x_=pygame.image.load('key_up.png')
+    width = x_.get_width()*scale
+    height = x_.get_height()*scale
+    scaled_img = pygame.transform.scale(x_, (width, height))
+    window.blit(scaled_img,(x,y))
+alldead = False
 l_g = []
 g1 = Goblin(900,610,0,0,0)
 l_g.append(g1)
 p1 = pozadina()
+sc2 = 0
 k1 = Knight(100,550,0,0,5)
 screen = 1
+c = 0
 minus_g = 0
 while True:
-    if screen == 1:
+    if screen == 10:
         window.fill("Blue")
         p1.draw()
         keys = pygame.key.get_pressed()
@@ -385,9 +439,17 @@ while True:
         mousePos = pygame.mouse.get_pos()
         for event in events:
             if event.type == pygame.QUIT:
-                exit()
+                screen=1
+                l_b[1].sx = 10
         if keys[pygame.K_ESCAPE]:
-            exit()
+            screen = 1
+            l_b[1].sx = 10
+    
+    
+    
+    
+    
+    
     
     
     if screen == 50:
@@ -408,20 +470,24 @@ while True:
             screen = 1
             p1.update(pygame.image.load('main_menu.png'),1.3)
         sound0.stop()
-        sound1.play()
+        if countdown == 300:
+            sound1.play()
         countdown-=1
         
         
     if screen == 0:
         a = random.randint(1,100)
-        if a == 1:
-            x_a = random.randint(100,900)
-            if len(l_g) == 100:
-                l_g[0] = Goblin(x_a,610,0,0,1)
-            else:
-                g = Goblin(x_a,610,0,0,1)
-                l_g.append(g)
-            
+        if sc2 <= 24:
+            if k1.coldow == 0:
+                if a == 1:
+                    sc2+=1
+                    x_a = random.randint(100,900)
+                    if len(l_g) == 100:
+                        l_g[0] = Goblin(x_a,610,0,0,1)
+                    else:
+                        g = Goblin(x_a,610,0,0,1)
+                        l_g.append(g)
+
 
         sound0.play()
         hp_minus = 0
@@ -434,14 +500,18 @@ while True:
         mousePos = pygame.mouse.get_pos()
         for event in events:
             if event.type == pygame.QUIT:
-                exit()
+                screen=1
+                l_b[1].sx = 0
         if keys[pygame.K_ESCAPE]:
-            exit()
+            screen = 1
+            l_b[1].sx = 0
         for i in range(len(l_g)):
             h = 0
             if k1.immobilis == 89 or k1.airattack==25:
                 minus_g = k1.checker(l_g[i].x,l_g[i].width)
                 l_g[i].hp -= minus_g
+                if l_g[i].hp == 0:
+                    alldead+=1
                 minus_g = 0
             h = l_g[i].move(k1.x,k1.width,minus_g)
             if h == None:
@@ -452,6 +522,37 @@ while True:
             l_g[i].draw(window)
         k1.draw(window)
         h1.draw(k1.hp)
+        if sc2==25:
+            alldead = True
+            if c == 0:
+                for i in range(len(l_g)):
+                    if l_g[i].hp == 1:
+                        alldead==False
+            if alldead == True:
+                c = 1
+            if k1.x>=650 and k1.x<=835:
+                wrant(window,750,425)
+                if keys[pygame.K_w] or keys[pygame.K_UP]:
+                    screen = 10
+                    p1.update()
+                
+
+            
+    if screen == 1:
+        window.fill("Blue")
+        p1.draw()
+        keys = pygame.key.get_pressed()
+        events = pygame.event.get()
+        mouseState = pygame.mouse.get_pressed()
+        mousePos = pygame.mouse.get_pos()
+        for event in events:
+            if event.type == pygame.QUIT:
+                exit()
+        if keys[pygame.K_ESCAPE]:
+            exit()
+        for i in range(len(l_b)):
+            screen = l_b[i].checker(mousePos,mouseState,screen)
+            l_b[i].draw(window)
     pygame.display.update()
     clock.tick(60)
     
