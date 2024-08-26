@@ -211,8 +211,14 @@ class Knight:
         if self.immobilis<=120 and self.immobilis>= 90:
             self.y += 40        
     def move(self,minus):
+        global screen
         if self.coldow>0:
             self.coldow-=1
+        cv = 0
+        cx = 0
+        if screen==2:
+            cv = 180
+            cx = 300
         global WIDTH
         global HEIGHT
         global mouseState
@@ -236,7 +242,7 @@ class Knight:
                     if self.state == 3:
                         self.state = 180
                     
-            if self.x <= WIDTH-230-27.5:
+            if self.x <= WIDTH-230-cv-27.5:
                 if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
                     self.dx = 2.5
                     self.move_l =False
@@ -246,7 +252,7 @@ class Knight:
                     if self.state == 3:
                         self.state = 180
         if self.jump == 0:
-            self.y = 550
+            self.y = 550-cx
             if self.cooldown == 0:
                 if self.immobilis == 0:
                     if keys[pygame.K_SPACE]:
@@ -305,6 +311,8 @@ class Goblin:
         self.hp = 1
     def draw(self,window):
         if self.hp == 1:
+            if self.state == 0:
+                self.state = 180
             sprite_img = 0
             if self.state <= 180 and self.state > 135:
                 if self.last_direction == 1:
@@ -353,7 +361,7 @@ class Goblin:
             self.height = sprite_img.get_height()*self.scale
             scaled_img = pygame.transform.scale(sprite_img, (self.width, self.height))
             window.blit(scaled_img,(self.x,self.y))
-    def move(self,kx,kwidth,minus_g):
+    def move(self,kx,kwidth):
         if self.hp == 1:
             minus = 0
             self.dx = 0
@@ -366,8 +374,6 @@ class Goblin:
                     self.dx = -1.5
             if self.state >= 3:
                 self.state -= 3
-            if self.state == 0:
-                self.state = 180
             if self.attack > 0:
                 self.attack-=1
             if self.attack == 0:
@@ -413,12 +419,29 @@ class Button:
 l_b = [Button(425,250,"---Start Over---",0),Button(425,400,"----Continue----",0)]
 
 def wrant(window,x,y):
+    
     scale = 0.2
     x_=pygame.image.load('key_up.png')
     width = x_.get_width()*scale
     height = x_.get_height()*scale
     scaled_img = pygame.transform.scale(x_, (width, height))
     window.blit(scaled_img,(x,y))
+    
+def check():
+    hp_minus = 0
+    for i in range(len(l_g)):
+        h = 0
+        if k1.immobilis == 89 or k1.airattack==25:
+            minus_g = k1.checker(l_g[i].x,l_g[i].width)
+            l_g[i].hp -= minus_g
+            minus_g = 0
+        h = l_g[i].move(k1.x,k1.width)
+        if h == None:
+            h = 0
+        hp_minus+=h
+    return hp_minus
+
+hp_minus = 0
 alldead = False
 l_g = []
 g1 = Goblin(900,610,0,0,0)
@@ -430,7 +453,7 @@ screen = 1
 c = 0
 minus_g = 0
 while True:
-    if screen == 10:
+    if screen == 2:
         window.fill("Blue")
         p1.draw()
         keys = pygame.key.get_pressed()
@@ -444,8 +467,9 @@ while True:
         if keys[pygame.K_ESCAPE]:
             screen = 1
             l_b[1].sx = 10
-    
-    
+        hp_minus = check()
+        k1.move(hp_minus)
+        k1.draw(window)
     
     
     
@@ -490,7 +514,6 @@ while True:
 
 
         sound0.play()
-        hp_minus = 0
         h = 0
         window.fill("Blue")
         p1.draw()
@@ -505,18 +528,10 @@ while True:
         if keys[pygame.K_ESCAPE]:
             screen = 1
             l_b[1].sx = 0
-        for i in range(len(l_g)):
-            h = 0
-            if k1.immobilis == 89 or k1.airattack==25:
-                minus_g = k1.checker(l_g[i].x,l_g[i].width)
-                l_g[i].hp -= minus_g
-                if l_g[i].hp == 0:
-                    alldead+=1
-                minus_g = 0
-            h = l_g[i].move(k1.x,k1.width,minus_g)
-            if h == None:
-                h = 0
-            hp_minus+=h
+
+            
+            
+        hp_minus = check()
         k1.move(hp_minus)
         for i in range(len(l_g)):
             l_g[i].draw(window)
@@ -531,10 +546,13 @@ while True:
             if alldead == True:
                 c = 1
             if k1.x>=650 and k1.x<=835:
-                wrant(window,750,425)
-                if keys[pygame.K_w] or keys[pygame.K_UP]:
-                    screen = 10
-                    p1.update()
+                if c == 1:
+                    wrant(window,750,425)
+                    if keys[pygame.K_w] or keys[pygame.K_UP]:
+                        screen = 2
+                        p1.update(pygame.image.load('haunted_room1.png'),4.6)
+                        k1 = Knight(100,150,0,0,5)
+                        k1.scale = 3
                 
 
             
@@ -552,6 +570,11 @@ while True:
             exit()
         for i in range(len(l_b)):
             screen = l_b[i].checker(mousePos,mouseState,screen)
+            if screen != 1:
+                    k1 = Knight(100,550,0,0,5)
+                    k1.coldow = 10
+                    l_g = []
+                    sc2 = 0
             l_b[i].draw(window)
     pygame.display.update()
     clock.tick(60)
