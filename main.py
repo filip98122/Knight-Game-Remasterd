@@ -98,9 +98,17 @@ class pozadina:
         self.height = self.img.get_height()*self.scale
         self.scaled_img = pygame.transform.scale(self.img, (self.width, self.height))
     def update(self,x,e):
+        d = 0
+        c = 0
         self.scale = e
-        self.width = x.get_width()*self.scale
-        self.height = x.get_height()*self.scale
+        if e == 2.6:
+            d = 2
+            c = 0.8
+        self.width = x.get_width()*(self.scale+d)
+        self.height = x.get_height()*(self.scale+c)
+        if d != 0:
+            self.width+=100
+            self.height+=100
         self.scaled_img = pygame.transform.scale(x, (self.width, self.height))
     def draw(self):
         global window
@@ -145,6 +153,7 @@ class Knight:
             minus_g += 1
         return minus_g
     def draw(self,window):
+        chopdown = 1
         if self.last_direction == 1:
             self.sprite_img = pygame.image.load('idle.png')
         else:
@@ -170,19 +179,19 @@ class Knight:
         
         
         
-        if self.immobilis<=120 and self.immobilis>= 90:
+        if self.immobilis<=120/chopdown and self.immobilis>= 90/chopdown:
             self.y -= 40
             if self.last_direction <0:
                 self.sprite_img = pygame.image.load('attack_1_l.png')
             else:
                 self.sprite_img = pygame.image.load('attack_1.png')
                 
-        if self.immobilis>=60 and self.immobilis< 90:
+        if self.immobilis>=60/chopdown and self.immobilis< 90/chopdown:
             if self.last_direction <0:
                 self.sprite_img = pygame.image.load('attack_2_l.png')
             else:
                 self.sprite_img = pygame.image.load('attack_2.png')
-        if self.immobilis<60 and self.immobilis> 0:
+        if self.immobilis<60/chopdown and self.immobilis> 0/chopdown:
             if self.last_direction <0:
                 self.sprite_img = pygame.image.load('attack_3_l.png')
             else:
@@ -393,6 +402,44 @@ class Goblin:
                         minus += 1
                 self.x += self.dx
                 return minus
+class King:
+    def __init__(self):
+        self.img = pygame.image.load('king1.png')
+        self.time = 0
+        self.scale = 2
+        self.width = self.img.get_width()*self.scale
+        self.height = self.img.get_height()*self.scale
+        self.scaled_img = pygame.transform.scale(self.img, (self.width, self.height))
+        
+        self.img = pygame.image.load('king.png')
+        self.scale = 1
+        self.width1 = self.img.get_width()*self.scale
+        self.height1 = self.img.get_height()*self.scale
+        self.scaled_img1 = pygame.transform.scale(self.img, (self.width, self.height))
+        
+        self.spawn = False
+        self.hp = 20
+
+    def check(s,k):
+        if s.hp>0:
+            if k.x >= 800 and k.x <= 925:
+                if k.immobilis == 89 or k.airattack==25:
+                    if k.last_direction == 1:
+                        s.hp -= 1
+                    
+    def draw(s,window):
+        s.spawn = False
+        if s.hp >0:
+            if s.time == 0:
+                s.time = 320
+            if s.time <= 320 and s.time >300:
+                window.blit(s.scaled_img1,(900,550))
+                if s.time == 301:
+                    s.spawn = True
+            else:
+                window.blit(s.scaled_img,(900,550))
+            s.time-=1
+    
 class Button:
     def __init__(s,x,y,text,scren_c):
         s.text = text
@@ -421,6 +468,9 @@ class Button:
                     k1.coldow = 10
                 if s.sx == 4:
                     p1.update(pygame.image.load('level_1.png'),1.35)
+                    k1.coldow = 10
+                if s.sx == 5:
+                    p1.update(pygame.image.load('throne room.png'),9.6)
                     k1.coldow = 10
         else:
             s.font = pygame.font.SysFont('The Black Knight',70)
@@ -497,6 +547,8 @@ gg = 0
 bbbb = 0
 qqq = 0
 c = 0
+nm = 1143
+sn = nm
 minus_g = 0
 while True:
     if screen == 4:
@@ -579,7 +631,24 @@ while True:
         h1.draw(k1.hp)
         
     
-    
+    if screen == 5:
+        window.fill("Blue")
+        p1.draw()
+        keys = pygame.key.get_pressed()
+        events = pygame.event.get()
+        mouseState = pygame.mouse.get_pressed()
+        mousePos = pygame.mouse.get_pos()
+        for event in events:
+            if event.type == pygame.QUIT:
+                screen=1
+                l_b[1].sx = 5
+                cooldown = 30
+                p1.update(pygame.image.load('main_menu.png'),1.3)
+        if keys[pygame.K_ESCAPE]:
+            screen = 1
+            cooldown = 30
+            l_b[1].sx = 5
+            p1.update(pygame.image.load('main_menu.png'),1.3)
     
     if screen == 3:
         window.fill("Blue")
@@ -632,6 +701,7 @@ while True:
                     l_b[1].sx = 2
                     cooldown
                     p1.update(pygame.image.load('haunt.png'),0.851)
+                    sn = nm
         if keys[pygame.K_ESCAPE]:
             if cooldown == 0:
                 screen =0
@@ -641,6 +711,7 @@ while True:
                 k1.coldow = 10
                 sc2 = 0
                 cooldown = 30
+                sn = nm
         hp_minus = check()
         k1.move(hp_minus)
         k1.draw(window)
@@ -683,6 +754,7 @@ while True:
         if countdown == 0:
             screen = 1
             p1.update(pygame.image.load('main_menu.png'),1.3)
+            k1 = Knight(100,550,0,0,5)
         sound0.stop()
         if countdown == 300:
             sound1.play()
@@ -702,8 +774,8 @@ while True:
                         g = Goblin(x_a,610,0,0,1)
                         l_g.append(g)
 
-
-        sound0.play()
+        if sn == nm:
+            sound0.play()
         h = 0
         window.fill("Blue")
         p1.draw()
@@ -759,11 +831,17 @@ while True:
                             k1 = Knight(100,150,0,0,5)
                             k1.scale = 3
                             l_g=[]
-                         
+                        else:
+                            screen = 5
+                            p1.update(pygame.image.load('throne room.png'),2.6)
+                            k1 = Knight(100,150,0,0,5)
+                            l_g = []
                             
         if cooldown>=1:
             cooldown -= 1
-
+        sn-=1
+        if sn == 0:
+            sn = nm
             
     if screen == 1:
         sound0.stop()
@@ -791,6 +869,7 @@ while True:
                 p1.update(pygame.image.load('haunted_room1.png'),4.6)
                 k1 = Knight(100,150,0,0,5)
                 k1.scale = 3
+                
             if cooldown>=1:
                 cooldown -= 1
             l_b[i].draw(window)
