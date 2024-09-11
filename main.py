@@ -945,4 +945,3 @@ if 1 == 1:
             k1.scale = 1.6
         pygame.display.update()
         clock.tick(60)
-        
