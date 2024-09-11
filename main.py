@@ -259,7 +259,7 @@ if 1 == 1:
             if self.defend == False:
                 if self.immobilis == 0:
                     if self.coldow == 0:
-                        if mouseState[2]:
+                        if keys[pygame.K_k]:
                             if self.jump == 0:
                                 self.defend = True
             
@@ -297,7 +297,7 @@ if 1 == 1:
             if self.defend == False:
                 if self.immobilis == 0:
                     if self.coldow == 0:
-                        if mouseState[0] == True:
+                        if keys[pygame.K_l] == True:
                             if self.jump == 0:
                                 self.immobilis = 120
                             else:
