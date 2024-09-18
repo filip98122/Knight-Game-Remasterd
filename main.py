@@ -400,7 +400,7 @@ if 1 == 1:
                     self.height = sprite_img.get_height()*self.scale
                     scaled_img = pygame.transform.scale(sprite_img, (self.width, self.height))
                     window.blit(scaled_img,(self.x,self.y))
-        def move(self,kx,kwidth,sc):
+        def move(self,kx,kwidth,sc,k):
             if sc == 4 or sc == 0 or sc == 5:
                 if self.hp == 1:
                     minus = 0
@@ -421,7 +421,14 @@ if 1 == 1:
                             self.attack = 205
                     if self.attack == 75:
                         if self.x+self.width>= kx and self.x<kx and self.last_direction == 1 or self.x <= kx+kwidth and self.x>kx and self.last_direction == -1:
-                            minus += 1
+                            if k.defend == True:
+                                if k.last_direction != self.last_direction:
+                                    pass
+                                else:
+                                    minus += 1
+                            else:
+                                minus += 1
+                            
                     self.x += self.dx
                     return minus
     class King:
@@ -496,10 +503,11 @@ if 1 == 1:
                 s.text_surface = s.font.render(f"{s.text}", True, (255, 255, 255))
             return scr
     class Fireball:
-        def __init__(self,x):
+        def __init__(self,x,dx):
             self.x = x
             self.y = 600
             self.alive = True
+            self.dx = dx
             self.scale = 1
             self.img = pygame.image.load('firebal.png')
             self.width = self.img.get_width()*self.scale
@@ -509,17 +517,98 @@ if 1 == 1:
             window.blit(s.scaled_img,(s.x,s.y))
         def move(s,k):
             minus = 0
-            if s.x<k.x+k.width:
-                if k.last_direction == 1 and k.defend:
-                    s.alive = False
-                else:
-                    minus = 1
-                    s.alive = False
-            s.x += -4
-            if s.x ==-130:
+            if s.dx == -4:
+                if s.x<k.x+k.width:
+                    if k.last_direction == 1 and k.defend:
+                        s.alive = False
+                    else:
+                        minus = 1
+                        s.alive = False
+            else:
+                if s.x<k.x and s.x+s.width>k.x:
+                    if k.last_direction == -1 and k.defend:
+                        s.alive = False
+                    else:
+                        minus = 1
+                        s.alive = False
+            s.x += s.dx
+            if s.x <=-130 or s.x >= 1330:
                 s.alive = False
             return minus
+    class Wizard:
+        def __init__(s,x):
+            s.x = x
+            s.last_direction = -1
+            s.state = 0
+            s.scale = 1.5
+            s.attack = 0
+            s.time = 300
+            s.alive = True
+        def draw(s,window,k):
+            if s.alive == True:
+                if s.time == 1:
+                    s.attack = 70
+                
+                if s.last_direction == 1:
+                    s.sprite_img =pygame.image.load('wiz_i.png')
+                else:
+                    s.sprite_img =pygame.image.load('wiz_i_l.png')
+                
+                if s.last_direction == 1:
+                    if s.state <= 80 and s.state>60:
+                        s.sprite_img =pygame.image.load('wizrun.png')
+                    if s.state <=60 and s.state>40:
+                        s.sprite_img =pygame.image.load('wizrun2.png')
+                    if s.state <= 40 and s.state>20:
+                        s.sprite_img =pygame.image.load('wizrun3.png')
+                    if s.state <=20 and s.state>0:
+                        s.sprite_img =pygame.image.load('wizrun4.png')
+                        
+                        
+                if s.last_direction == -1:
+                    if s.state <= 80 and s.state>60:
+                        s.sprite_img =pygame.image.load('wizrun_l.png')
+                    if s.state <=60 and s.state>40: 
+                        s.sprite_img =pygame.image.load('wizrun2_l.png')
+                    if s.state <= 40 and s.state>20:
+                        s.sprite_img =pygame.image.load('wizrun3_l.png')
+                    if s.state <=20 and s.state>0:
+                        s.sprite_img =pygame.image.load('wizrun4_l.png')
+                        
+                        
+                        
+                    if s.attack <=70 and s.attack> 45:
+                        s.sprite_img =pygame.image.load('wiza1_l.png')
+                    if s.attack<=45 and s.attack>0:
+                        s.sprite_img =pygame.image.load('wiza2_l.png')
+                else:
+                    if s.attack <=70 and s.attack> 45:
+                        s.sprite_img =pygame.image.load('wiza1.png')
+                    if s.attack<=45 and s.attack>0:
+                        s.sprite_img =pygame.image.load('wiza2.png')
+                        
+                s.width = s.sprite_img.get_width()*s.scale
+                s.height = s.sprite_img.get_height()*s.scale
+                s.scaled_img = pygame.transform.scale(s.sprite_img, (s.width, s.height))
+                window.blit(s.scaled_img,(s.x,600))
+                s.time -=1
+                if s.time == 0:
+                    s.time = 300
+                if s.attack >0:
+                    s.attack-=1
+                if s.x<k.x:
+                    s.last_direction = 1
+                else:
+                    s.last_direction = -1
+                if k.immobilis == 89 or k.airattack==25:
+                    pass
+            
+        
     countdown = 0
+    
+
+    l_w = []
+    
     l_b = [Button(425,250,"---Start Over---",4)]
     h1 = health()
     def scroll(window,x,y):
@@ -546,7 +635,7 @@ if 1 == 1:
                 minus_g = k1.checker(l_g[i].x,l_g[i].width)
                 l_g[i].hp -= minus_g
                 minus_g = 0
-            h = l_g[i].move(k1.x,k1.width,screen)
+            h = l_g[i].move(k1.x,k1.width,screen,k1)
             if h == None:
                 h = 0
             hp_minus+=h
@@ -575,7 +664,7 @@ if 1 == 1:
     alldead = False
     k2 = King()
     cooldown = 0
-    f1 = Fireball(500)
+    f1 = Fireball(500,-4)
     f1.alive = False
     l_g = []
     img = pygame.image.load('cry.png')
@@ -591,6 +680,7 @@ if 1 == 1:
     hack = -1
     gg = 0
     bbbb = 0
+    l_f = []
     qqq = 0
     c = 0
     frames_til_music_restart = 1146
@@ -697,10 +787,11 @@ if 1 == 1:
                 p1.update(pygame.image.load('main_menu.png'),1.3)
             
             hp_minus = check()
-            if f1.alive == True:
-                hpminus = f1.move(k1)
-                f1.draw(window)
-                hp_minus+=hpminus
+            for i in range(len(l_f)):
+                if f1.alive == True:
+                    hpminus = f1.move(k1)
+                    f1.draw(window)
+                    hp_minus+=hpminus
             k1.move(hp_minus)
             k2.check(k1)
             k2.draw(window)
@@ -709,7 +800,8 @@ if 1 == 1:
             for i in range(len(l_g)):
                 l_g[i].draw(window,screen)
             if k2.spawn:
-                f1 = Fireball(900)
+                f1 = Fireball(900,-4)
+                l_f.append(f1)
                 for i in range(2):
                     x_a = random.randint(100,900)
                     g = Goblin(x_a,610,0,0,1)
@@ -758,7 +850,7 @@ if 1 == 1:
             for event in events:
                 if event.type == pygame.QUIT:
                     if cooldown ==0:
-                        k1 = Knight(100,550,0,0,5)
+                        k1 = Knight(750,550,0,0,5)
                         k1.coldow = 10
                         sc2 = 0
                         screen=0
@@ -769,7 +861,7 @@ if 1 == 1:
                 if cooldown == 0:
                     screen =0
                     p1.update(pygame.image.load('haunt.png'),0.851)
-                    k1 = Knight(100,550,0,0,5)
+                    k1 = Knight(750,550,0,0,5)
                     k1.coldow = 10
                     sc2 = 0
                     cooldown = 30
@@ -825,7 +917,7 @@ if 1 == 1:
             
             
         if screen == 0:
-            a = random.randint(1,100)
+            a = random.randint(1,150)
             if sc2 <= 24:
                 if k1.coldow == 0:
                     if a == 1:
@@ -836,6 +928,10 @@ if 1 == 1:
                         else:
                             g = Goblin(x_a,610,0,0,1)
                             l_g.append(g)
+            if a==150:
+                x_a = random.randint(100,900)
+                w1 = Wizard(x_a)
+                l_w.append(w1)
 
             if sn == frames_til_music_restart:
                 sound0.play()
@@ -867,7 +963,18 @@ if 1 == 1:
                     cooldown = 30
                     p1.update(pygame.image.load('main_menu.png'),1.3)
                 
-                
+            for i in range(len(l_w)):
+                l_w[i].draw(window,k1)
+                if l_w[i].attack == 2:
+                    if l_w[i].last_direction == 1:
+                        Fireball(l_w[i].x+l_w[i].width//2,4)
+                    else:
+                        Fireball(l_w[i].x+l_w[i].width//2,-4)
+            for i in range(len(l_f)):
+                if f1.alive == True:
+                    hpminus = f1.move(k1)
+                    f1.draw(window)
+                    hp_minus+=hpminus
             hp_minus = check()
             k1.move(hp_minus)
             for i in range(len(l_g)):
